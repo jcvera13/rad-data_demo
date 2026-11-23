@@ -1,0 +1,17 @@
+utc_time,login,role,action,detail
+2026-11-22T23:55:21+00:00,demo_rad01,member,sign-in,
+2026-11-23T00:20:51+00:00,demo_rad01,member,sign-in,
+2026-11-23T00:22:49+00:00,demo_rad01,member,sign-in,
+2026-11-23T00:52:37+00:00,demo_office,admin,view,admin:Readers
+2026-11-23T00:52:45+00:00,demo_office,admin,view,admin:Group trend
+2026-11-23T00:52:49+00:00,demo_office,admin,view,admin:Data coverage
+2026-11-23T00:52:57+00:00,demo_office,admin,view,admin:Data quality
+2026-11-23T00:53:14+00:00,demo_office,admin,view,admin:Export
+2026-11-23T02:40:31+00:00,demo_office,admin,export,admin:aggregates
+2026-11-23T03:51:25+00:00,demo_rad01,member,sign-in,
+2026-11-23T04:31:56+00:00,demo_office,admin,view,admin:Readers
+2026-11-23T04:32:00+00:00,demo_office,admin,view,admin:Group trend
+2026-11-23T04:32:05+00:00,demo_office,admin,view,admin:Data coverage
+2026-11-23T04:32:14+00:00,demo_office,admin,view,admin:Data quality
+2026-11-23T04:47:55+00:00,demo_rad01,member,sign-in,
+2026-11-23T05:57:11+00:00,demo_rad01,member,sign-in,

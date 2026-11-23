@@ -1,0 +1,31 @@
+exam,part,wrvu,ppc,modality,log
+cr chest 1v,demo,0.6,6,cr,xr
+cr chest 2v,demo,1.0,10,cr,xr
+cr abdomen 1v,demo,1.0,10,cr,xr
+cr knee 3v rt,demo,1.0,10,cr,xr
+cr hand 3v lt,demo,1.0,10,cr,xr
+ct head w/o contrast,demo,3.88,39,ct,ct
+ct head w/ and w/o contrast,demo,5.2,52,ct,ct
+ct chest w/ contrast,demo,5.5,55,ct,ct
+ct chest w/o contrast lung screening,demo,3.2,32,ct,ct
+ct abdomen pelvis w/ contrast,demo,6.28,63,ct,ct
+ct abdomen pelvis w/ and w/o contrast,demo,8.44,84,ct,ct
+ct cervical spine w/o contrast,demo,3.9,39,ct,ct
+ct angio head neck,demo,7.0,70,ct,ct
+mr brain w/o contrast,demo,3.92,39,mr,mr
+mr brain w/ and w/o contrast,demo,5.4,54,mr,mr
+mr lumbar spine w/o contrast,demo,4.67,47,mr,mr
+mr cervical spine w/o contrast,demo,4.67,47,mr,mr
+mr knee w/o contrast,demo,2.8,28,mr,mr
+mr shoulder w/o contrast,demo,2.8,28,mr,mr
+mr pelvis w/ and w/o contrast,demo,6.1,61,mr,mr
+us abdomen complete,demo,1.9,19,us,us
+us renal,demo,1.4,14,us,us
+us thyroid,demo,1.5,15,us,us
+us venous duplex lower ext bilat,demo,1.6,16,us,us
+mg screening 3d bilat,demo,1.7,17,mg,mg
+mg diagnostic bilat,demo,2.9,29,mg,mg
+nm myocardial perfusion,demo,4.2,42,nm,nm
+pt fdg skull base to mid thigh,demo,10.49,105,pt,pt
+dexa bone density,demo,0.89,9,bd,bd
+cr hand*,demo,1.0,10,cr,xr
