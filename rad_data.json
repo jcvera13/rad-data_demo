@@ -11,10 +11,10 @@
   "fallback": true,
   "hash_key": "demo-key-not-secret",
   "users": {
-    "demo_rad01": {"role": "member", "reader": "demo_rad01"},
-    "demo_rad02": {"role": "admin",  "reader": "demo_rad02"},
-    "demo_rad03": {"role": "member", "reader": "demo_rad03"},
-    "demo_rad13": {"role": "member", "reader": "demo_rad13"},
-    "demo_office": {"role": "admin", "reader": null}
+    "demo_rad01(member)": {"role": "member", "reader": "demo_rad01"},
+    "demo_rad02(admin)": {"role": "admin",  "reader": "demo_rad02"},
+    "demo_rad03(member)": {"role": "member", "reader": "demo_rad03"},
+    "demo_rad13(member)": {"role": "member", "reader": "demo_rad13"},
+    "demo_admin": {"role": "admin", "reader": null}
   }
 }
