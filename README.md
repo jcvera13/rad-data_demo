@@ -1,4 +1,5 @@
-# rad-data_demo
+# rad-data (local prototype)
+
 A runnable local version of the web app in the migration plan: a landing page with six anonymised tiles, a
 **My data** pathway (own exams only) and an **Admin** pathway (whole group, real reader IDs, no accession number).
 It builds on the existing examaudit pieces: the 16-column exam table, `localdb.py` (date cleaning, fallback, quality checks)
