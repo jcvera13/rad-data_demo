@@ -18,7 +18,7 @@ import pandas as pd
 
 ALIASES = {"exam": ("exam", "exam name", "exam description", "description"),
            "part": ("part", "body part", "bodypart"),
-           "wrvu": ("wrvu", "workunit", "work unit", "work units", "wu", "rvu", "examvalue(wu)", "examvalue", "exam value"), 
+           "wrvu": ("wrvu", "workunit", "work unit", "work units", "wu", "rvu", "examvalue(wu)", "examvalue", "exam value"),
            "ppc": ("ppc",),
            "modality": ("modality", "mod"), "log": ("log",)}
 NUMERIC = ("wrvu", "ppc")

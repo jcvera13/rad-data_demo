@@ -125,14 +125,20 @@ def position(value: float, row) -> str:
 
 # 4 ---------------------------------------------------------------- when exams arrive
 def arrival(df: pd.DataFrame, cfg: dict, ref=None) -> Result:
+    """When exams become available for review on PACS (StudyDateTime), by weekday and hour. Needs a StudyDateTime with a time of day;
+    rows whose study date came from a fallback column, or has only a day, are left out."""
     if (b := _enough_readers(df, cfg)):
         return b
-    o = df.dropna(subset=["Obs"])
-    h = (o.assign(Weekday=o["Obs"].dt.day_name(), Hour=o["Obs"].dt.hour)
+    o = df[(df["StudySource"] == "StudyDateTime") & df["Study"].notna() & (df["Study"] != df["Study"].dt.normalize())]
+    if o.empty:
+        return _blocked("StudyDateTime has no time of day in this data, so the hour an exam became available is unknown.")
+    h = (o.assign(Weekday=o["Study"].dt.day_name(), Hour=o["Study"].dt.hour)
          .groupby(["Weekday", "Hour"]).size().reset_index(name="Exams"))
     hide = h["Exams"] < cfg["min_cell"]
-    return Result("heatmap", {"Exams by weekday and hour": h[~hide]},
-                  f"{int(hide.sum())} weekday-hour cell(s) with fewer than {cfg['min_cell']} exams are hidden." if hide.any() else "")
+    note = f"Hour the exam became available for review on PACS (StudyDateTime); {len(df) - len(o):,} of {len(df):,} exams have no study time of day and are not counted. "
+    if hide.any():
+        note += f"{int(hide.sum())} weekday-hour cell(s) with fewer than {cfg['min_cell']} exams are hidden."
+    return Result("heatmap", {"Exams by weekday and hour": h[~hide]}, note)
 
 
 # 5 ---------------------------------------------------------------- late signs and corrections
@@ -177,29 +183,35 @@ def _tat_table(d: pd.DataFrame, by, cfg: dict, unit: str) -> pd.DataFrame:
 
 
 def turnaround(df: pd.DataFrame, cfg: dict, ref=None) -> Result:
-    """Observation time to sign time, by modality, facility and observation hour.
-    If ReportDate carries no time of day (most rows at midnight) the sign time is unknown and the result is in calendar days."""
+    """Available for review (StudyDateTime) to report finalized (ObservationDateTime), by modality, facility and the hour the exam became available.
+    Hours when both have a time of day; otherwise calendar days from the study date to the sign date (ReportDate)."""
     if (b := _enough_readers(df, cfg)):
         return b
-    d = df.dropna(subset=["Obs", "Report", "Modality"]).copy()
+    d = df[df["StudySource"] == "StudyDateTime"].dropna(subset=["Study", "Modality"]).copy()
+    timed = d["Obs"].notna() & (d["Study"] != d["Study"].dt.normalize())
+    has_time = bool(len(d) and timed.mean() > 0.5)
+    if has_time:
+        d = d[timed]
+        d["TAT"] = (d["Obs"] - d["Study"]).dt.total_seconds() / 3600
+        unit = "hours"
+    else:
+        d = d.dropna(subset=["Report"])
+        d["TAT"] = (d["Report"].dt.normalize() - d["Study"].dt.normalize()).dt.days
+        unit = "days"
     if d.empty:
-        return _blocked("No exams with both an observation time and a sign date in this range.")
-    has_time = bool((d["Report"] != d["Report"].dt.normalize()).mean() > 0.2)
-    unit = "hours" if has_time else "days"
-    d["TAT"] = ((d["Report"] - d["Obs"]).dt.total_seconds() / 3600 if has_time
-                else (d["Report"].dt.normalize() - d["Obs"].dt.normalize()).dt.days)
+        return _blocked("No exams with both a study time and a report time in this range.")
     neg = int((d["TAT"] < 0).sum())
     d = d[d["TAT"] >= 0]
-    d["Hour"] = d["Obs"].dt.hour
+    d["Hour"] = d["Study"].dt.hour
     frames = {"By modality": _tat_table(d, "Modality", cfg, unit).sort_values("Exams", ascending=False),
               "By facility": _tat_table(d.dropna(subset=["Facility"]), "Facility", cfg, unit).sort_values("Exams", ascending=False),
-              "By observation hour": _tat_table(d, "Hour", cfg, unit)}
-    note = (f"Turnaround = observation time to sign time, in {unit}. ")
+              "By hour available": _tat_table(d.dropna(subset=["Study"]), "Hour", cfg, unit)}
+    note = f"Turnaround = available for review (StudyDateTime) to report finalized (ObservationDateTime), in {unit}. "
     if not has_time:
-        note += "The sign date has no time of day in this data, so it is counted in calendar days (0 = signed the same day). "
+        note += "Study or report times of day are missing, so it is counted in calendar days from the study date to the sign date (0 = signed the same day). "
     note += "Includes late signs and corrections, so read the 90th percentile with care. "
     if neg:
-        note += f"{neg:,} exam(s) signed before their observation time were left out. "
+        note += f"{neg:,} exam(s) finalized before they were available were left out. "
     note += f"Rows with fewer than {cfg['min_cell']} exams are hidden."
     return Result("table", frames, note)
 
@@ -433,10 +445,10 @@ TILES = (
     Tile("workload", "Produced vs read", "Is the group reading as much as it produces? Weekly WU by study date vs sign date, by modality, over the last {days} days.", workload_trend),
     Tile("mix", "Modality and facility mix", "Where does the work come from: WU by modality and by facility.", mix),
     Tile("productivity", "Productivity range", "What is the typical WU per hour and minutes per WU, and how wide is the spread?", productivity_range),
-    Tile("arrival", "When exams arrive", "Which weekdays and hours are busiest, to inform scheduling?", arrival),
+    Tile("arrival", "When exams arrive", "Which weekdays and hours do exams become available for review, to inform scheduling?", arrival),
     Tile("late", "Late signs and corrections", "How many exams are reported in a later month than they were studied?", late_signs),
     Tile("gaps", "Dictionary gaps", "Which frequent exams have no WU value or no lookup match, ranked by how many exams they affect?", dictionary_gaps),
-    Tile("turnaround", "Turnaround time", "How long from observation to sign, by modality, facility and hour of day?", turnaround),
+    Tile("turnaround", "Turnaround time", "How long from available for review to report finalized, by modality, facility and hour of day?", turnaround),
     Tile("coverage", "Cross-coverage", "How often is an exam read by someone other than the reader it was assigned to?", cross_coverage),
     Tile("lookup", "Lookup check", "Do exams match the reference table, and does the work unit recorded on each exam agree with it?", lookup_check),
     Tile("find", "Find an exam", "Search the work unit lookup by name, or filter by modality, body part, contrast and WU, and see how often each exam is read.", lookup_table),

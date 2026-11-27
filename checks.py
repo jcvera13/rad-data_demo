@@ -106,10 +106,15 @@ check("mix merges or hides modalities under the cell size",
 check("sign-date basis: no demo exam is signed after the pull date", d["Day"].max() <= pd.Timestamp("2026-10-30"))
 # turnaround and cross-coverage
 ta, cc = res["turnaround"], res["coverage"]
-check("turnaround: demo ReportDate has no time, so it is reported in days", "Median (days)" in ta.frames["By modality"].columns)
+check("turnaround: the demo has study and sign times, so it is reported in hours", "Median (hours)" in ta.frames["By modality"].columns)
 check("turnaround: no cell below min_cell", all((f["Exams"] >= cfg["min_cell"]).all() for f in ta.frames.values()))
 syn = d.head(3000).copy()
-syn["Report"] = syn["Obs"] + pd.to_timedelta(2.5, unit="h")
+syn["Obs"] = syn["Study"] + pd.to_timedelta(2.5, unit="h")
+nt = syn.assign(Obs=pd.NaT)
+check("turnaround: without a report time it falls back to calendar days from the sign date",
+      "Median (days)" in tiles.turnaround(nt, cfg).frames["By modality"].columns)
+check("arrival: counts the hour the exam became available (StudyDateTime), not the sign time",
+      tiles.arrival(syn.assign(Obs=syn["Obs"] + pd.Timedelta(hours=7)), cfg).frames["Exams by weekday and hour"].equals(tiles.arrival(syn, cfg).frames["Exams by weekday and hour"]))
 check("turnaround: with a sign time it is reported in hours and the median is right",
       abs(tiles.turnaround(syn, cfg).frames["By modality"].filter(like="Median").iloc[:, 0].median() - 2.5) < 1e-9)
 ov = cc.frames["Overall"].iloc[0]

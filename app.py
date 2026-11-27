@@ -211,6 +211,7 @@ def _summary_workbook(sheets: dict) -> bytes:
             ldb.csv_safe(df).to_excel(w, sheet_name=name[:31], index=False)
     return buf.getvalue()
 
+
 def _week_and_mix(d: pd.DataFrame) -> pd.DataFrame:
     """My work units per week (chart) and my modality mix (table), side by side. Returns the mix table."""
     left, right = st.columns(2)

@@ -1,0 +1,9 @@
+__pycache__/
+*.pyc
+demo/audit_log.csv
+demo/*.db
+.streamlit/secrets.toml
+rad_data.local.json
+
+analyst/analyst_audit.csv
+demo/radfetch_demo.db

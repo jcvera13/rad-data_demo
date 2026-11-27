@@ -30,6 +30,8 @@ import localdb as ldb
 HERE = Path(__file__).resolve().parent
 DEFAULTS = {"auth_mode": "dev", "default_days": 180, "range_presets": [30, 90, 180, 365], "min_readers": 5,
             "min_cell": 10, "min_reads": 5, "demo": False, "chest_xr_modalities": ["CR", "DX", "XR"], "fallback": True, "users": {}, "hash_key": "change-me"}
+
+
 # ---------------------------------------------------------------- configuration
 def load_config(path: str | Path | None = None) -> dict:
     p = Path(path or os.environ.get("RAD_DATA_CONFIG") or HERE / "rad_data.json")
@@ -87,6 +89,8 @@ def _all_rows(path: str, stamp: float, fallback: bool, _key: str) -> pd.DataFram
     df = ldb.load(path, fallback=fallback)
     df["AccessionNumber"] = _hash_ids(df["AccessionNumber"], _key)   # identifiers never leave this function
     return df
+
+
 def alias_map(df: pd.DataFrame) -> dict:
     """R01, R02... for every reader seen as Radiologist or AssignedTo, so both columns use the same alias."""
     return ldb.anonymize_map(pd.concat([df["Radiologist"], df["AssignedTo"]]))
@@ -117,6 +121,7 @@ def own_rows(user: User, cfg: dict) -> pd.DataFrame:
         return df.iloc[0:0].drop(columns="AssignedTo")
     # AssignedTo would name other readers (who an exam was assigned to), so members never receive it
     return df[df["Radiologist"].str.lower().eq(user.reader.lower()).fillna(False)].drop(columns="AssignedTo")
+
 
 def all_rows(user: User, cfg: dict) -> pd.DataFrame:
     """Every exam with real reader IDs. Admin only."""
