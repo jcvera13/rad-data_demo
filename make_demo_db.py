@@ -43,8 +43,12 @@ HOURS = [7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18]
 HOUR_W = [4, 8, 10, 10, 9, 6, 8, 9, 8, 6, 4, 2]
 
 
+DRIFT = {"mr knee w/o contrast": 1.25, "us thyroid": 0.8}   # recorded WU deliberately off the lookup, for the Lookup check tile
+
+
 def main(seed: int = 7) -> None:
     rnd = random.Random(seed)
+    arnd = random.Random(seed + 1)   # separate stream for AssignedTo so the other demo values stay as before
     OUT.mkdir(exist_ok=True)
     pace = [0.85, 0.92, 1.0, 1.0, 1.05, 1.1, 0.95, 0.9, 1.2, 1.0, 1.15, 0.8]  # read-time factor per reader
     readers = {f"demo_rad{i:02d}": p for i, p in enumerate(pace, 1)}
@@ -64,7 +68,9 @@ def main(seed: int = 7) -> None:
         st = day + pd.Timedelta(hours=h, minutes=rnd.randint(0, 59), seconds=rnd.randint(0, 59))
         secs = max(30, int(rnd.gauss(mins * 60 * readers[who], mins * 60 * 0.3)))
         late = rnd.random() < 0.05
-        rep = st + pd.Timedelta(days=rnd.randint(10, 40) if late else rnd.randint(0, 2), minutes=rnd.randint(5, 240))
+        rep = min(st + pd.Timedelta(days=rnd.randint(10, 40) if late else rnd.randint(0, 2), minutes=rnd.randint(5, 240)),
+                  pd.Timestamp("2026-10-30 23:59"))   # nothing is signed after the pull date
+        assigned = who if arnd.random() > 0.06 else arnd.choice([n for n in names if n != who])   # ~6% read by someone else
         r = rnd.random()
         stamp = (st.strftime("%Y-%m-%d %H:%M:%S") if r < 0.78 else st.strftime("%Y-%m-%d %H:%M") if r < 0.90
                  else st.strftime("%m/%d/%y %H:%M") if r < 0.99 else "NULL")
@@ -76,7 +82,8 @@ def main(seed: int = 7) -> None:
             ObservationDateTime=(st + pd.Timedelta(minutes=rnd.randint(5, 30))).strftime("%Y-%m-%d %H:%M:%S"),
             ReportDate=rep.strftime("%m/%d/%y"), ReportYearMonth=rep.strftime("%Y-%m"),
             JobTimeSecs=secs, JobTimeMins=round(secs / 60), StudyDateTime=stamp,
-            WorkRVU=round(wu * 0.93, 2), WorkUnits=None if rnd.random() < 0.007 else round(wu * rnd.uniform(0.95, 1.05), 2)))
+            WorkRVU=round(wu * 0.93, 2), WorkUnits=None if rnd.random() < 0.007 else round(wu * DRIFT.get(desc, 1.0) * rnd.uniform(0.95, 1.05), 2),
+            AssignedTo=assigned))
 
     for day in pd.bdate_range("2026-05-04", "2026-10-30"):
         present = rnd.sample(names, rnd.randint(8, 12))

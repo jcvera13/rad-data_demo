@@ -154,7 +154,9 @@ def load(path: str, table: str | None = None, fallback: bool = True) -> pd.DataF
     df["StudyDay"], df["ReportDay"] = df["Study"].dt.normalize(), df["Report"].dt.normalize()
     df["StudyMonth"], df["ReportMonth"] = _months(df["StudyDay"]), _months(df["ReportDay"])
     df["JobMins"] = (df["JobTimeSecs"] / 60).fillna(df["JobTimeMins"])  # secs is exact; JobTimeMins looks rounded (77 s -> 1.0)
-    for c in ("Modality", "Radiologist", "Facility", "CPT", "ExamDescription", "ExamCode"):
+    if "AssignedTo" not in df:
+        df["AssignedTo"] = None   # optional extra column: who Merge PACS assigned the exam to
+    for c in ("Modality", "Radiologist", "Facility", "CPT", "ExamDescription", "ExamCode", "AssignedTo"):
         df[c] = clean_nulls(df[c])  # NULL / N/A / blank text become real nulls
     df["CPT"] = df["CPT"].str.strip("'\"").str.strip()  # CPT arrives as '70486' (Excel text prefix)
     return df
